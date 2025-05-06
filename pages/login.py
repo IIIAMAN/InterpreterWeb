@@ -2,6 +2,7 @@ import streamlit as st
 import translations
 from database import get_db_connection, close_db_connection
 import bcrypt
+import time
 
 def login_page():
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
@@ -10,13 +11,13 @@ def login_page():
     # Функция валидации имени пользователя
     def validate_username(username):
         if not username:
-            return False, "Имя пользователя не может быть пустым."
+            return False, translations.t('username_empty')
         return True, ""
 
     # Функция валидации пароля
     def validate_password(password):
         if not password:
-            return False, "Пароль не может быть пустым."
+            return False, translations.t('password_empty')
         return True, ""
 
     with st.form("login_form"):
@@ -25,7 +26,6 @@ def login_page():
         submit_button = st.form_submit_button(translations.t('login_button'))
 
         if submit_button:
-            # Валидация ввода
             is_valid_username, username_error = validate_username(username)
             is_valid_password, password_error = validate_password(password)
 
@@ -46,19 +46,20 @@ def login_page():
                                     st.session_state.authenticated = True
                                     st.session_state.username = username
                                     st.success(translations.t('login_success'))
+                                    time.sleep(1)  # Задержка для отображения сообщения
+                                    st.session_state.page = 'home'
                                     st.rerun()
                                 else:
-                                    st.error("Неверный пароль.")
+                                    st.error(translations.t('invalid_password'))
                             else:
-                                st.error("Пользователь не найден.")
+                                st.error(translations.t('user_not_found'))
                     except Exception as e:
-                        st.error("Произошла ошибка при входе. Пожалуйста, попробуйте снова.")
+                        st.error(translations.t('login_error'))
                     finally:
                         close_db_connection(connection)
                 else:
-                    st.error("Не удалось подключиться к базе данных.")
+                    st.error(translations.t('db_connection_error'))
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Отображаем страницу авторизации по умолчанию
 login_page()

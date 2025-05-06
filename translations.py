@@ -3,6 +3,8 @@ import streamlit as st
 translations = {
     "Русский": {
         "title": "Interpreter",
+        "logout": "Выйти",
+        "password": "Пароль",
         "login": "Авторизация",
         "register": "Регистрация",
         "chat": "Чат",
@@ -54,9 +56,11 @@ translations = {
         ],
     },
     "English": {
+        "logout": "Logout",  # Fixed from "Выйти" to "Logout"
         "title": "Interpreter",
         "login": "Login",
         "register": "Register",
+        "password": "Password",
         "chat": "Chat",
         "translate": "Text Translation",
         "notes": "Notes",

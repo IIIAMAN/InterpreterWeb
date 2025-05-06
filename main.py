@@ -18,44 +18,54 @@ if 'translation_history' not in st.session_state:
     st.session_state.translation_history = []
 if 'username' not in st.session_state:
     st.session_state.username = ""
-if 'language' not in st.session_state:
-    st.session_state.language = "Русский"  # Язык по умолчанию
+if 'page' not in st.session_state:
+    st.session_state.page = 'login'
 
 # Заголовок сайта
 st.markdown(f"<h1 style='text-align: center; color: var(--text-color);'>{translations.t('title')}</h1>", unsafe_allow_html=True)
 
+# Настройки в боковой панели
+with st.sidebar:
+    # Кнопка выхода
+    if st.session_state.authenticated and st.button(translations.t('logout')):
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.session_state.page = 'login'
+        st.rerun()
+
 # Определение страниц с переведенными заголовками
-login_page = st.Page("pages/login.py", title=translations.t('login'), icon="🔒")
-register_page = st.Page("pages/register.py", title=translations.t('register'), icon="🆕")
-home_page = st.Page("pages/home.py", title=translations.t('chat'), icon="💬")
-translate_page = st.Page("pages/translate.py", title=translations.t('translate'), icon="🌐")
-notes_page = st.Page("pages/notes.py", title=translations.t('notes'), icon="📝")
-ocr_page = st.Page("pages/ocr.py", title=translations.t('ocr'), icon="📸")
+def define_pages():
+    return [
+        st.Page("pages/login.py", title=translations.t('login'), icon="🔒"),
+        st.Page("pages/register.py", title=translations.t('register'), icon="🆕"),
+        st.Page("pages/home.py", title=translations.t('chat'), icon="💬"),
+        st.Page("pages/translate.py", title=translations.t('translate'), icon="🌐"),
+        st.Page("pages/notes.py", title=translations.t('notes'), icon="📝"),
+    ]
 
 # Определение доступных страниц
+all_pages = define_pages()
+login_page, register_page, home_page, translate_page, notes_page = all_pages
+
+# Выбор страниц в зависимости от состояния авторизации
 if st.session_state.authenticated:
-    pages = [home_page, translate_page, notes_page, ocr_page]
+    pages = [home_page, translate_page, notes_page]
 else:
     pages = [login_page, register_page]
 
-# Навигация в боковой панели
+# Установка начальной страницы
+if st.session_state.page == 'home' and not st.session_state.authenticated:
+    st.session_state.page = 'login'
+elif st.session_state.page not in ['login', 'register', 'home', 'translate', 'notes']:
+    st.session_state.page = 'login'
+
+# Навигация
 current_page = st.navigation(pages, position="sidebar")
 
-# Настройки в боковой панели
-with st.sidebar:
-    st.markdown("<div style='flex-grow: 1;'></div>", unsafe_allow_html=True)
-    language = st.selectbox(translations.t('language_label'), ["Русский", "English"])
-    st.session_state.language = language
-
-    # Кнопка выхода
-    if st.button(translations.t('logout')):
-        st.session_state.authenticated = False
-        st.session_state.username = ""
-        st.rerun()
-
 # Защита страниц
-if not st.session_state.authenticated and current_page in [home_page, translate_page, notes_page, ocr_page]:
+if not st.session_state.authenticated and current_page in [home_page, translate_page, notes_page]:
     st.error(translations.t('login_required'))
+    st.session_state.page = 'login'
     st.rerun()
 
 # Выполнение текущей страницы
