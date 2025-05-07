@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 import translations
+import base64
 
 # Отключение наблюдателя за файлами
 os.environ["STREAMLIT_SERVER_ENABLE_FILE_WATCHER"] = "false"
@@ -23,15 +24,6 @@ if 'page' not in st.session_state:
 
 # Заголовок сайта
 st.markdown(f"<h1 style='text-align: center; color: var(--text-color);'>{translations.t('title')}</h1>", unsafe_allow_html=True)
-
-# Настройки в боковой панели
-with st.sidebar:
-    # Кнопка выхода
-    if st.session_state.authenticated and st.button(translations.t('logout')):
-        st.session_state.authenticated = False
-        st.session_state.username = ""
-        st.session_state.page = 'login'
-        st.rerun()
 
 # Определение страниц с переведенными заголовками
 def define_pages():
@@ -67,6 +59,31 @@ if not st.session_state.authenticated and current_page in [home_page, translate_
     st.error(translations.t('login_required'))
     st.session_state.page = 'login'
     st.rerun()
+
+# Добавление кнопки выхода для авторизованных пользователей
+if st.session_state.authenticated:
+    if st.sidebar.button(translations.t('logout')):
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.session_state.page = 'login'
+        st.rerun()
+
+# Чтение и кодирование изображения QR-кода
+with open("qr_code.png", "rb") as image_file:
+    base64_image = base64.b64encode(image_file.read()).decode()
+qr_code_html = f'''
+<div style="text-align: center; margin-bottom: 10px;">
+    <p style="font-size: 16px; font-weight: bold; color: #2ecc71;">↓ Скачивай Desktop приложение!! ↓</p>
+</div>
+<div style="text-align: center; border: 2px solid #3498db; border-radius: 10px; padding: 10px; background-color: #f9f9f9;">
+    <a href="https://disk.yandex.ru/d/HXpwXFD_QqPpCA" target="_blank">
+        <img src="data:image/png;base64,{base64_image}" width="200" style="display: block; margin: 0 auto;">
+    </a>
+</div>
+'''
+
+# Добавление QR-кода для всех пользователей
+st.sidebar.markdown(qr_code_html, unsafe_allow_html=True)
 
 # Выполнение текущей страницы
 current_page.run()
